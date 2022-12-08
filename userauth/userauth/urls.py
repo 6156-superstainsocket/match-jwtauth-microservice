@@ -23,5 +23,3 @@ urlpatterns = [
     path('api-auth/', include('rest_framework.urls')),
 ]
 
-urlpatterns += [
-    path('api-token-auth/', views.obtain_auth_token)]

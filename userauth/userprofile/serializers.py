@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import Profile
 from django.contrib.auth import get_user_model
 from django.http import Http404
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 User = get_user_model()
 
@@ -60,6 +61,15 @@ class UserListSerializer(serializers.Serializer):
         child=serializers.EmailField(),
         required=False
     )
+
+class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super(MyTokenObtainPairSerializer, cls).get_token(user)
+
+        # 添加额外信息
+        token['user'] = UserSerializer(user).data
+        return token
 
 
 

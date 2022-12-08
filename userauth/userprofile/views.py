@@ -3,17 +3,20 @@ from django.shortcuts import render, get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
 from django.contrib.auth.models import User
-from .serializers import UserSerializer, UserListSerializer
+from .serializers import UserSerializer, UserListSerializer, MyTokenObtainPairSerializer
 from rest_framework.authentication import TokenAuthentication, BasicAuthentication
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import permissions
+from .permissions import IsUserMyself
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 def username_exists(username):
     return User.objects.filter(username=username).exists()
 
 class RegisterUser(APIView):
-    authentication_classes = (TokenAuthentication, BasicAuthentication)
+    authentication_classes = (JWTAuthentication, )
     permission_classes = (permissions.AllowAny,)
 
     def get(self, request, format=None):
@@ -30,24 +33,34 @@ class RegisterUser(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ShowUser(APIView):
-    authentication_classes = (TokenAuthentication, BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    authentication_classes = (JWTAuthentication, )
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly, IsUserMyself,)
+
+    def get_object(self, pk):
+        obj = get_object_or_404(User, pk=pk)
+        self.check_object_permissions(self.request, obj)
+        return obj
 
     def get(self, request, user_id, format=None):
-        user = get_object_or_404(User, pk=user_id)
+        user = self.get_object(pk=user_id)
         serializer = UserSerializer(user)
         return Response(serializer.data)
 
     def put(self, request, user_id, format=None):
-        user = get_object_or_404(User, pk=user_id)
+        user = self.get_object(user_id)
         serializer = UserSerializer(instance=user, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    def delete(self, request, user_id, format=None):
+        user = self.get_object(user_id)
+        user.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 class BatchUser(APIView):
-    authentication_classes = (TokenAuthentication, BasicAuthentication)
+    authentication_classes = (JWTAuthentication, )
     permission_classes = (permissions.AllowAny,)
 
     def post(self, request, format=None):
@@ -63,6 +76,8 @@ class BatchUser(APIView):
 
 
 class CustomAuthToken(ObtainAuthToken):
+    # authentication_classes is default defined in setting.py
+    permission_classes = (permissions.AllowAny, )
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data,
@@ -75,5 +90,8 @@ class CustomAuthToken(ObtainAuthToken):
             'user': UserSerializer(user).data
         })
 
+class MyObtainTokenPairView(TokenObtainPairView):
+    permission_classes = (permissions.AllowAny, )
+    serializer_class = MyTokenObtainPairSerializer
 
     
