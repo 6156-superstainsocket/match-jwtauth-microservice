@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from django.contrib.auth.models import User
 from .serializers import UserSerializer, UserListSerializer, MyTokenObtainPairSerializer
 from rest_framework.authentication import TokenAuthentication, BasicAuthentication
-from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.authentication import JWTAuthentication, JWTStatelessUserAuthentication
 from rest_framework import permissions
 from .permissions import IsUserMyself
 from rest_framework.authtoken.views import ObtainAuthToken
@@ -16,7 +16,6 @@ def username_exists(username):
     return User.objects.filter(username=username).exists()
 
 class RegisterUser(APIView):
-    authentication_classes = (JWTAuthentication, )
     permission_classes = (permissions.AllowAny,)
 
     def get(self, request, format=None):
@@ -33,7 +32,6 @@ class RegisterUser(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ShowUser(APIView):
-    authentication_classes = (JWTAuthentication, )
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, IsUserMyself,)
 
     def get_object(self, pk):
@@ -60,7 +58,6 @@ class ShowUser(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 class BatchUser(APIView):
-    authentication_classes = (JWTAuthentication, )
     permission_classes = (permissions.AllowAny,)
 
     def post(self, request, format=None):

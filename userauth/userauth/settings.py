@@ -15,8 +15,9 @@ from datetime import timedelta
 
 
 SIMPLE_JWT = {
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-    'ROTATE_REFRESH_TOKENS': True,
+    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=7),
+    'SLIDING_TOKEN_LIFETIME': timedelta(minutes=60),
+    'SIGNING_KEY': "django-insecure-#p(=(3=h&gxt%e13)*a#h-ox92xpj=by5o+_^wt#&(m_d0xz&-",
 }
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -128,7 +129,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework_simplejwt.authentication.JWTStatelessUserAuthentication',
         # 'rest_framework.authentication.BasicAuthentication',
         # 'rest_framework.authentication.TokenAuthentication',
     )}
