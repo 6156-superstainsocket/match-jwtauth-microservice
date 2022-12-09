@@ -15,8 +15,8 @@ from datetime import timedelta
 
 
 SIMPLE_JWT = {
-    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=7),
-    'SLIDING_TOKEN_LIFETIME': timedelta(minutes=60),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=7),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=14),
     'SIGNING_KEY': "django-insecure-#p(=(3=h&gxt%e13)*a#h-ox92xpj=by5o+_^wt#&(m_d0xz&-",
 }
 
