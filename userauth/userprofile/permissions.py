@@ -16,5 +16,6 @@ class IsUserMyself(permissions.BasePermission):
     
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
+            print(request.user.id)
             return True
         return obj == request.user
