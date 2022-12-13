@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import Profile
 from django.contrib.auth import get_user_model
 from django.http import Http404
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenObtainSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 import requests
 from django.conf import settings
@@ -72,7 +72,17 @@ class UserListSerializer(serializers.Serializer):
         required=False
     )
 
-class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+# class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+#     @classmethod
+#     def get_token(cls, user):
+#         token = super(MyTokenObtainPairSerializer, cls).get_token(user)
+
+#         token['user'] = UserSerializer(user).data
+#         return token
+
+class MyTokenObtainPairSerializer(TokenObtainSerializer):
+    token_class = RefreshToken
+
     @classmethod
     def get_token(cls, user):
         token = super(MyTokenObtainPairSerializer, cls).get_token(user)
@@ -80,13 +90,26 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['user'] = UserSerializer(user).data
         return token
 
+    def validate(self, attrs):
+        data = super().validate(attrs)
+
+        refresh = self.get_token(self.user)
+
+        data["refresh"] = str(refresh)
+        data["access"] = str(refresh.access_token)
+        data["user"] = UserSerializer(self.user).data
+
+        update_last_login(None, self.user)
+
+        return data
+
 class OAuth2ObtainPairSerializer(serializers.Serializer):
     id_token = serializers.CharField()
     user = UserSerializer(required=False)
 
     def google_validate_id_token(self, id_token: str) -> bool:
         response = requests.get(
-            'https://www.googleapis.com/oauth2/v3/tokeninfo',
+            'https://oauth2.googleapis.com/tokeninfo',
             params={'id_token': id_token}
         )
 
@@ -98,7 +121,10 @@ class OAuth2ObtainPairSerializer(serializers.Serializer):
         if audience != settings.GOOGLE_OAUTH2_CLIENT_ID:
             raise ValidationError('Invalid audience.')
 
-        return response
+        if 'email' not in response.json():
+            raise ValidationError('Google response succeed but does not inlcude a valid email, wtf')
+
+        return response.json()
 
     def get_token(self, user):
         token = RefreshToken.for_user(user)
@@ -106,10 +132,7 @@ class OAuth2ObtainPairSerializer(serializers.Serializer):
         return token
 
     def validate(self, attrs):
-        # res = self.google_validate_id_token(attrs['id_token'])
-        res = {
-            'email': 'stub@gmail.com'
-        }
+        res = self.google_validate_id_token(attrs['id_token'])
         
         user_param = attrs.get("user", None)
 
@@ -121,9 +144,7 @@ class OAuth2ObtainPairSerializer(serializers.Serializer):
                 user = user_serializer.data
             else:
                 return user_serializer.errors
-        
             user, created = User.objects.get_or_create(username=user["email"])
-
         else:
             user, created = User.objects.get_or_create(username=res["email"])
 

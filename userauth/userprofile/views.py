@@ -90,6 +90,7 @@ class CustomAuthToken(ObtainAuthToken):
 class MyObtainTokenPairView(TokenObtainPairView):
     permission_classes = (permissions.AllowAny, )
     serializer_class = MyTokenObtainPairSerializer
+    
 
 class MyOAuth2TokenPairView(TokenObtainPairView):
     permission_classes = (permissions.AllowAny, )
