@@ -28,6 +28,11 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('id', 'username', 'password', 'email', 'first_name', 'last_name', 'profile')
         read_only_fields = ('id', )
 
+    def validate_email(self, value):
+        if User.objects.filter(username=value).exists():
+            raise serializers.ValidationError("Email Already Exist")
+        return value
+
     def create(self, validated_data):
         profile_data = validated_data.pop('profile')
 
