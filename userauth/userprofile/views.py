@@ -3,7 +3,7 @@ from django.shortcuts import render, get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
 from django.contrib.auth.models import User
-from .serializers import UserSerializer, UserListSerializer, MyTokenObtainPairSerializer
+from .serializers import UserSerializer, UserListSerializer, MyTokenObtainPairSerializer, OAuth2ObtainPairSerializer
 from rest_framework.authentication import TokenAuthentication, BasicAuthentication
 from rest_framework_simplejwt.authentication import JWTAuthentication, JWTStatelessUserAuthentication
 from rest_framework import permissions
@@ -90,5 +90,19 @@ class CustomAuthToken(ObtainAuthToken):
 class MyObtainTokenPairView(TokenObtainPairView):
     permission_classes = (permissions.AllowAny, )
     serializer_class = MyTokenObtainPairSerializer
+
+class MyOAuth2TokenPairView(TokenObtainPairView):
+    permission_classes = (permissions.AllowAny, )
+    serializer_class = OAuth2ObtainPairSerializer
+
+    def post(self, request, *args, **kwards):
+        # id_token = request.headers.get('id_token')
+        # google_validate_id_token(id_token=id_token)
+        serializer = OAuth2ObtainPairSerializer(data=request.data)
+
+        if serializer.is_valid():
+            return Response(serializer.validated_data, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     

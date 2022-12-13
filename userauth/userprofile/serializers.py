@@ -3,6 +3,11 @@ from .models import Profile
 from django.contrib.auth import get_user_model
 from django.http import Http404
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
+import requests
+from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.contrib.auth.models import update_last_login
 
 User = get_user_model()
 
@@ -26,7 +31,7 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         profile_data = validated_data.pop('profile')
 
-        user = User.objects.create_user(username=validated_data['username'],
+        user = User.objects.create_user(username=validated_data['email'],
                                     email=validated_data['email'],
                                     password=validated_data['password'],
                                     first_name=validated_data.get('first_name', ''),
@@ -67,10 +72,66 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def get_token(cls, user):
         token = super(MyTokenObtainPairSerializer, cls).get_token(user)
 
-        # 添加额外信息
         token['user'] = UserSerializer(user).data
         return token
 
+class OAuth2ObtainPairSerializer(serializers.Serializer):
+    id_token = serializers.CharField()
+    user = UserSerializer(required=False)
+
+    def google_validate_id_token(self, id_token: str) -> bool:
+        response = requests.get(
+            'https://www.googleapis.com/oauth2/v3/tokeninfo',
+            params={'id_token': id_token}
+        )
+
+        if not response.ok:
+            raise ValidationError('id_token is invalid.')
+
+        audience = response.json()['aud']
+
+        if audience != settings.GOOGLE_OAUTH2_CLIENT_ID:
+            raise ValidationError('Invalid audience.')
+
+        return response
+
+    def get_token(self, user):
+        token = RefreshToken.for_user(user)
+        token['user'] = UserSerializer(user).data
+        return token
+
+    def validate(self, attrs):
+        # res = self.google_validate_id_token(attrs['id_token'])
+        res = {
+            'email': 'stub@gmail.com'
+        }
+        
+        user_param = attrs.get("user", None)
+
+        if user_param and not User.objects.filter(username=res['email']).exists():
+            user_param['email'] = res['email']
+            user_serializer = UserSerializer(data=user_param)
+            if user_serializer.is_valid():
+                user_serializer.save()
+                user = user_serializer.data
+            else:
+                return user_serializer.errors
+        
+            user, created = User.objects.get_or_create(username=user["email"])
+
+        else:
+            user, created = User.objects.get_or_create(username=res["email"])
+
+        data = {}
+        refresh = self.get_token(user)
+
+        data["refresh"] = str(refresh)
+        data["access"] = str(refresh.access_token)
+        data["user"] = UserSerializer(user).data
+
+        update_last_login(None, user)
+
+        return data
 
 
 
