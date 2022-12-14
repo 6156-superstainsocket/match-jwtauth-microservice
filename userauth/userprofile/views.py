@@ -19,6 +19,7 @@ def username_exists(username):
 class RegisterUser(GenericAPIView):
     permission_classes = (permissions.AllowAny,)
     serializer_class = UserSerializer
+    queryset = User.objects.all()
 
     def get(self, request, format=None):
         allusers = User.objects.all()
