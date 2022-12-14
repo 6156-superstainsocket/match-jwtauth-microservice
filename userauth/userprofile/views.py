@@ -1,4 +1,5 @@
 from rest_framework.views import APIView
+from rest_framework.generics import GenericAPIView
 from django.shortcuts import render, get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
@@ -15,8 +16,9 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 def username_exists(username):
     return User.objects.filter(username=username).exists()
 
-class RegisterUser(APIView):
+class RegisterUser(GenericAPIView):
     permission_classes = (permissions.AllowAny,)
+    serializer_class = UserSerializer
 
     def get(self, request, format=None):
         allusers = User.objects.all()
@@ -31,8 +33,9 @@ class RegisterUser(APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class ShowUser(APIView):
+class ShowUser(GenericAPIView):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, IsUserMyself,)
+    serializer_class = UserSerializer
 
     def get_object(self, pk):
         obj = get_object_or_404(User, pk=pk)
@@ -57,8 +60,9 @@ class ShowUser(APIView):
         user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-class BatchUser(APIView):
+class BatchUser(GenericAPIView):
     permission_classes = (permissions.AllowAny,)
+    serializer_class = UserListSerializer
 
     def post(self, request, format=None):
         list_serializer = UserListSerializer(data=request.data)

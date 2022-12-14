@@ -109,7 +109,7 @@ class OAuth2ObtainPairSerializer(serializers.Serializer):
 
     def google_validate_id_token(self, id_token: str) -> bool:
         response = requests.get(
-            'https://oauth2.googleapis.com/tokeninfo',
+            settings.GOOGLE_ENDPOINT,
             params={'id_token': id_token}
         )
 

@@ -135,3 +135,6 @@ REST_FRAMEWORK = {
         # 'rest_framework.authentication.BasicAuthentication',
         # 'rest_framework.authentication.TokenAuthentication',
     )}
+
+GOOGLE_OAUTH2_CLIENT_ID = '246328411502-hje0geis0508eq3r4h9hlh6k891v4pk2.apps.googleusercontent.com'
+GOOGLE_ENDPOINT = 'https://oauth2.googleapis.com/tokeninfo'
