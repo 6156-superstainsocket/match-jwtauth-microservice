@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'rest_framework_swagger',
     'drf_yasg',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -60,6 +61,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
 ]
 
 ROOT_URLCONF = "userauth.urls"
@@ -136,6 +139,8 @@ REST_FRAMEWORK = {
         # 'rest_framework.authentication.TokenAuthentication',
     )}
 
-# GOOGLE_OAUTH2_CLIENT_ID = '246328411502-hje0geis0508eq3r4h9hlh6k891v4pk2.apps.googleusercontent.com'
-GOOGLE_OAUTH2_CLIENT_ID = '246328411502-hje0geis0508eq3r4h9hlh6k891v4pk2'
+CORS_ALLOW_ALL_ORIGINS = True # If this is used then `CORS_ALLOWED_ORIGINS` will not have any effect
+CORS_ALLOW_CREDENTIALS = True
+
+GOOGLE_OAUTH2_CLIENT_ID = '246328411502-hje0geis0508eq3r4h9hlh6k891v4pk2.apps.googleusercontent.com'
 GOOGLE_ENDPOINT = 'https://oauth2.googleapis.com/tokeninfo'
