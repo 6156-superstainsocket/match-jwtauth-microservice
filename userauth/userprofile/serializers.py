@@ -146,7 +146,9 @@ class OAuth2ObtainPairSerializer(serializers.Serializer):
                 return user_serializer.errors
             user, created = User.objects.get_or_create(username=user["email"])
         else:
-            user, created = User.objects.get_or_create(username=res["email"])
+            user, created = User.objects.get_or_create(username=res["email"], email=res["email"])
+            Profile.objects.create(user=user)
+
 
         data = {}
         refresh = self.get_token(user)
