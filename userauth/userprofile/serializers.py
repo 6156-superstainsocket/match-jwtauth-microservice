@@ -136,18 +136,21 @@ class OAuth2ObtainPairSerializer(serializers.Serializer):
         
         user_param = attrs.get("user", None)
 
-        if user_param and not User.objects.filter(username=res['email']).exists():
-            user_param['email'] = res['email']
-            user_serializer = UserSerializer(data=user_param)
-            if user_serializer.is_valid():
-                user_serializer.save()
-                user = user_serializer.data
+        if not User.objects.filter(username=res['email']).exists():
+            if user_param:
+                user_param['email'] = res['email']
+                user_serializer = UserSerializer(data=user_param)
+                if user_serializer.is_valid():
+                    user_serializer.save()
+                    user = user_serializer.data
+                else:
+                    return user_serializer.errors
+                user, created = User.objects.get_or_create(username=user["email"])
             else:
-                return user_serializer.errors
-            user, created = User.objects.get_or_create(username=user["email"])
+                user, created = User.objects.get_or_create(username=res["email"], email=res["email"])
+                Profile.objects.create(user=user)
         else:
-            user, created = User.objects.get_or_create(username=res["email"], email=res["email"])
-            Profile.objects.create(user=user)
+            user, created = User.objects.get_or_create(username=res["email"])
 
 
         data = {}
