@@ -9,6 +9,8 @@ urlpatterns = [
     re_path(r'(?P<user_id>[0-9]+)$', views.ShowUser.as_view()),
     re_path(r'batch$', views.BatchUser.as_view()),
     re_path(r'(?P<user_id>[0-9]+)/posts/', views.UserPostList.as_view()),
+    re_path(r'posts/(?P<pk>[0-9]+)/', views.UserPostDetail.as_view()),
+    path('addpost/', views.UserPostAdd.as_view()),
     path('login/', views.CustomAuthToken.as_view()),
     path('token/', views.MyObtainTokenPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),

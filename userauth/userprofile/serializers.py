@@ -97,6 +97,10 @@ class UserPostSerializer(serializers.ModelSerializer):
 
         return userpost
 
+    def update(self, instance, validated_data):
+        validated_data.pop('uploaded_images', None)
+        return super().update(instance, validated_data)
+
 # class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 #     @classmethod
 #     def get_token(cls, user):

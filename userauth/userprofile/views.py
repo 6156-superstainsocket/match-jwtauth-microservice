@@ -1,4 +1,4 @@
-from rest_framework.generics import GenericAPIView, ListCreateAPIView
+from rest_framework.generics import GenericAPIView, ListCreateAPIView, CreateAPIView, ListAPIView, RetrieveUpdateDestroyAPIView
 from django.shortcuts import render, get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
@@ -8,15 +8,17 @@ from .serializers import UserSerializer, UserListSerializer, MyTokenObtainPairSe
 from rest_framework.authentication import TokenAuthentication, BasicAuthentication
 from rest_framework_simplejwt.authentication import JWTAuthentication, JWTStatelessUserAuthentication
 from rest_framework import permissions
-from .permissions import IsUserMyself
+from .permissions import IsUserMyself, IsOwnerOrReadOnly
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework import parsers
 
 def username_exists(username):
     return User.objects.filter(username=username).exists()
 
 class RegisterUser(GenericAPIView):
+    # Could be simplified with ListCreateAPIView, but leave as an customize example
     permission_classes = (permissions.AllowAny,)
     serializer_class = UserSerializer
     queryset = User.objects.all()
@@ -76,19 +78,29 @@ class BatchUser(GenericAPIView):
         else:
             return Response(list_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class UserPostList(ListCreateAPIView):
-    permission_classes = (permissions.AllowAny,)
+class UserPostList(ListAPIView):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = UserPostSerializer
 
     def get_queryset(self):
         uid = self.kwargs['user_id']
         return UserPost.objects.filter(user=uid)
 
+class UserPostAdd(CreateAPIView):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    serializer_class = UserPostSerializer
+    parser_classes = (parsers.MultiPartParser, parsers.FormParser)
+
     def perform_create(self, serializer):
-        uid = self.kwargs['user_id']
+        uid = self.request.user.id
         user = User.objects.get(pk=uid)
         userpost = serializer.save(user=user)
         return userpost
+
+class UserPostDetail(RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsOwnerOrReadOnly, ]
+    queryset = UserPost.objects.all()
+    serializer_class = UserPostSerializer
 
 class CustomAuthToken(ObtainAuthToken):
     # authentication_classes is default defined in setting.py
@@ -109,7 +121,6 @@ class MyObtainTokenPairView(TokenObtainPairView):
     permission_classes = (permissions.AllowAny, )
     serializer_class = MyTokenObtainPairSerializer
     
-
 class MyOAuth2TokenPairView(TokenObtainPairView):
     permission_classes = (permissions.AllowAny, )
     serializer_class = OAuth2ObtainPairSerializer
