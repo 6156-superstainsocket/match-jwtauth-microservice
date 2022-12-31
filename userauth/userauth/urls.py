@@ -44,6 +44,7 @@ urlpatterns = [
          name='schema-redoc'),
     path("admin/", admin.site.urls),
     path("users/", include("userprofile.urls")),
+    path("posts/", include("userpost.urls")),
     path('api-auth/', include('rest_framework.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
