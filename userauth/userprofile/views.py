@@ -1,10 +1,10 @@
-from rest_framework.views import APIView
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView, ListCreateAPIView
 from django.shortcuts import render, get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
 from django.contrib.auth.models import User
-from .serializers import UserSerializer, UserListSerializer, MyTokenObtainPairSerializer, OAuth2ObtainPairSerializer
+from .models import UserPost
+from .serializers import UserSerializer, UserListSerializer, MyTokenObtainPairSerializer, OAuth2ObtainPairSerializer, UserPostSerializer
 from rest_framework.authentication import TokenAuthentication, BasicAuthentication
 from rest_framework_simplejwt.authentication import JWTAuthentication, JWTStatelessUserAuthentication
 from rest_framework import permissions
@@ -76,6 +76,19 @@ class BatchUser(GenericAPIView):
         else:
             return Response(list_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class UserPostList(ListCreateAPIView):
+    permission_classes = (permissions.AllowAny,)
+    serializer_class = UserPostSerializer
+
+    def get_queryset(self):
+        uid = self.kwargs['user_id']
+        return UserPost.objects.filter(user=uid)
+
+    def perform_create(self, serializer):
+        uid = self.kwargs['user_id']
+        user = User.objects.get(pk=uid)
+        userpost = serializer.save(user=user)
+        return userpost
 
 class CustomAuthToken(ObtainAuthToken):
     # authentication_classes is default defined in setting.py

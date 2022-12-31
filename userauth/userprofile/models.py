@@ -15,6 +15,10 @@ from django.db.models.signals import post_save #add this
 
 
 # Create your models here.
+
+def upload_to(instance, filename):
+    return 'images/{filename}'.format(filename=filename)
+    
 class Profile(models.Model):
     is_google = models.BooleanField(default=False)
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -22,6 +26,7 @@ class Profile(models.Model):
     phone = models.CharField(max_length=20, default="")
     description = models.CharField(max_length=140, default="")
     iconid = models.IntegerField(null=True, default=0)
+    icon = models.ImageField(upload_to=upload_to, blank=True, null=True, default="default_icon.jpg")
 
     '''
     @receiver(post_save, sender=User)
@@ -39,3 +44,11 @@ class Profile(models.Model):
 
     def get_absolute_url(self):
         return reverse('model-user-detail', args=[str(self.id)])
+
+class UserPost(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, default=0)
+    description = models.CharField(max_length=140, default="")
+
+class PostImage(models.Model):
+    userpost = models.ForeignKey(UserPost, on_delete=models.CASCADE, related_name="images")
+    image = models.ImageField(upload_to="post_img", default="", null=True, blank=True)

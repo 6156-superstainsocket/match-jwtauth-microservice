@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+import os
 
 
 SIMPLE_JWT = {
@@ -34,6 +35,12 @@ SECRET_KEY = "django-insecure-#p(=(3=h&gxt%e13)*a#h-ox92xpj=by5o+_^wt#&(m_d0xz&-
 DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
+
+# Actual directory user files go to
+MEDIA_ROOT = os.path.join(os.path.dirname(BASE_DIR), 'mediafiles')
+
+# URL used to access the media
+MEDIA_URL = '/media/'
 
 
 # Application definition
@@ -149,7 +156,12 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTStatelessUserAuthentication',
         # 'rest_framework.authentication.BasicAuthentication',
         # 'rest_framework.authentication.TokenAuthentication',
-    )}
+    ),
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.MultiPartParser',
+        'rest_framework.parsers.FormParser'
+    ]
+}
 
 CORS_ALLOW_ALL_ORIGINS = True
 

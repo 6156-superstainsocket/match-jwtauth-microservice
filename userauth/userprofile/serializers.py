@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Profile
+from .models import Profile, UserPost, PostImage
 from django.contrib.auth import get_user_model
 from django.http import Http404
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenObtainSerializer
@@ -12,6 +12,7 @@ from django.contrib.auth.models import update_last_login
 User = get_user_model()
 
 class ProfileSerializer(serializers.ModelSerializer):
+    icon = serializers.ImageField(required=False)
 
     class Meta:
         model = Profile
@@ -72,6 +73,30 @@ class UserListSerializer(serializers.Serializer):
         required=False
     )
 
+class PostImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PostImage
+        fields = ["id", "userpost", "image"]
+
+class UserPostSerializer(serializers.ModelSerializer):
+    images = PostImageSerializer(many=True, read_only=True)
+    uploaded_images = serializers.ListField(
+        child = serializers.ImageField(max_length=10000, allow_empty_file=False, use_url=False),
+        write_only = True
+    )
+
+    class Meta:
+        model = UserPost
+        fields = ["id", "description", "images", "uploaded_images"]
+
+    def create(self, validated_data):
+        uploaded_images = validated_data.pop("uploaded_images")
+        userpost = UserPost.objects.create(**validated_data)
+        for image in uploaded_images:
+            newpost_image = PostImage.objects.create(userpost=userpost, image=image)
+
+        return userpost
+
 # class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 #     @classmethod
 #     def get_token(cls, user):
@@ -112,18 +137,13 @@ class OAuth2ObtainPairSerializer(serializers.Serializer):
             settings.GOOGLE_ENDPOINT,
             params={'id_token': id_token}
         )
-
         if not response.ok:
             raise ValidationError('id_token is invalid.')
-
         audience = response.json()['aud']
-
         if audience != settings.GOOGLE_OAUTH2_CLIENT_ID:
             raise ValidationError('Invalid audience.')
-
         if 'email' not in response.json():
             raise ValidationError('Google response succeed but does not inlcude a valid email, wtf')
-
         return response.json()
 
     def get_token(self, user):
@@ -133,9 +153,7 @@ class OAuth2ObtainPairSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         res = self.google_validate_id_token(attrs['id_token'])
-        
         user_param = attrs.get("user", None)
-
         if not User.objects.filter(username=res['email']).exists():
             if user_param:
                 user_param['email'] = res['email']
