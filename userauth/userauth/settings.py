@@ -96,25 +96,25 @@ WSGI_APPLICATION = "userauth.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": BASE_DIR / "db.sqlite3",
+#     }
+# }
 
-'''
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'match_user',
-        'USER': 'adminuser',
-        'PASSWORD': 'adminpassword',
-        'HOST': 'match6156.c4huidqjyq0x.us-east-1.rds.amazonaws.com',
+        'NAME': 'likeout_user',
+        'USER': 'likeoutmaster',
+        'PASSWORD': 'W7xobqWTw1uy5yNvSY4r',
+        'HOST': 'likeout-1.csb9pqc2ohjl.us-east-1.rds.amazonaws.com',
         'PORT': '5432',
     }
 }
-'''
+
 
 
 # Password validation
