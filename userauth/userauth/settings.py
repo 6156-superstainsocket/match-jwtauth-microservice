@@ -146,14 +146,18 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
+# https://testdriven.io/blog/storing-django-static-and-media-files-on-amazon-s3/
 
-STATIC_URL = "static/"
+# STATIC_URL = "static/"
+AWS_LOCATION = 'static'
+STATIC_URL = "https://likeout-user.s3.amazonaws.com/static/"
 STATIC_ROOT = BASE_DIR / "static"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (

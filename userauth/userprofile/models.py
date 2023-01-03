@@ -23,7 +23,7 @@ class Profile(models.Model):
     phone = models.CharField(max_length=20, default="")
     description = models.CharField(max_length=140, default="")
     iconid = models.IntegerField(null=True, default=0)
-    icon = models.ImageField(upload_to="icons", blank=True, null=True, default="default_icon.jpg")
+    icon = models.ImageField(upload_to="icons", blank=True, null=True, default="icons/default_icon.jpg")
 
     '''
     @receiver(post_save, sender=User)
