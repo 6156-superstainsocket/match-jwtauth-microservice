@@ -1,4 +1,4 @@
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView, RetrieveUpdateDestroyAPIView
 from django.shortcuts import render, get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
@@ -24,55 +24,64 @@ class RegisterUser(GenericAPIView):
 
     def get(self, request, format=None):
         allusers = User.objects.all()
-        serializer = UserSerializer(allusers, many=True)
+        serializer = self.get_serializer(allusers, many=True)
         return Response(serializer.data)
 
     def post(self, request, format=None):
-        serializer = UserSerializer(data=request.data)
+        serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class ShowUser(GenericAPIView):
+# class ShowUser(GenericAPIView):
+#     permission_classes = (permissions.IsAuthenticatedOrReadOnly, IsUserMyself,)
+#     serializer_class = UserSerializer
+
+#     def get_object(self, pk):
+#         obj = get_object_or_404(User, pk=pk)
+#         self.check_object_permissions(self.request, obj)
+#         return obj
+
+#     def get(self, request, user_id, format=None):
+#         user = self.get_object(pk=user_id)
+#         serializer = UserSerializer(user)
+#         return Response(serializer.data)
+
+#     def put(self, request, user_id, format=None):
+#         user = self.get_object(user_id)
+#         serializer = UserSerializer(instance=user, data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+#     def delete(self, request, user_id, format=None):
+#         user = self.get_object(user_id)
+#         user.delete()
+#         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class UserDetails(RetrieveUpdateDestroyAPIView):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, IsUserMyself,)
+    queryset = User.objects.all()
     serializer_class = UserSerializer
 
-    def get_object(self, pk):
-        obj = get_object_or_404(User, pk=pk)
-        self.check_object_permissions(self.request, obj)
-        return obj
+    def put(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
 
-    def get(self, request, user_id, format=None):
-        user = self.get_object(pk=user_id)
-        serializer = UserSerializer(user)
-        return Response(serializer.data)
-
-    def put(self, request, user_id, format=None):
-        user = self.get_object(user_id)
-        serializer = UserSerializer(instance=user, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, user_id, format=None):
-        user = self.get_object(user_id)
-        user.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class BatchUser(GenericAPIView):
     permission_classes = (permissions.AllowAny,)
-    serializer_class = UserListSerializer
+    serializer_class = UserSerializer
 
     def post(self, request, format=None):
         list_serializer = UserListSerializer(data=request.data)
         if list_serializer.is_valid():
             pk_users = User.objects.filter(pk__in=list_serializer.data['uids'])
-            pk_serializer = UserSerializer(pk_users, many=True)
+            pk_serializer = self.get_serializer(pk_users, many=True)
             email_users = User.objects.filter(email__in=list_serializer.data['emails'])
-            email_serializer = UserSerializer(email_users, many=True)
+            email_serializer = self.get_serializer(email_users, many=True)
             return Response({"uids" : pk_serializer.data, "emails": email_serializer.data})
         else:
             return Response(list_serializer.errors, status=status.HTTP_400_BAD_REQUEST)

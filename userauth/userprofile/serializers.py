@@ -27,7 +27,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'username', 'password', 'email', 'first_name', 'last_name', 'profile')
-        read_only_fields = ('id', )
+        read_only_fields = ('id', 'email')
 
     def validate_email(self, value):
         if User.objects.filter(username=value).exists():
@@ -50,7 +50,7 @@ class UserSerializer(serializers.ModelSerializer):
         profile_data = validated_data.pop('profile')
         profile = instance.profile
 
-        instance.email = validated_data.get("email", instance.email)
+        # instance.email = validated_data.get("email", instance.email)
         instance.first_name = validated_data.get("first_name", instance.first_name)
         instance.last_name = validated_data.get("last_name", instance.last_name)
         instance.save()
