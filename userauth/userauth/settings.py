@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'django_cleanup.apps.CleanupConfig',
     'drf_yasg',
     'corsheaders',
+    'storages',
 ]
 
 MIDDLEWARE = [
@@ -169,3 +170,9 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 GOOGLE_OAUTH2_CLIENT_ID = '246328411502-hje0geis0508eq3r4h9hlh6k891v4pk2.apps.googleusercontent.com'
 GOOGLE_ENDPOINT = 'https://oauth2.googleapis.com/tokeninfo'
+
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+AWS_ACCESS_KEY_ID = 'AKIAX4RHPSBUPTVGMQVZ'
+AWS_SECRET_ACCESS_KEY = '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'
+AWS_STORAGE_BUCKET_NAME = 'likeout-user'
+AWS_QUERYSTRING_AUTH = False
