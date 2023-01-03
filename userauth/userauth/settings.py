@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     "userpost",
     'rest_framework.authtoken',
     'rest_framework_swagger',
+    'django_cleanup.apps.CleanupConfig',
     'drf_yasg',
     'corsheaders',
 ]

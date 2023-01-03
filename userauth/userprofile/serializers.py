@@ -27,7 +27,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'username', 'password', 'email', 'first_name', 'last_name', 'profile')
-        read_only_fields = ('id', 'email')
+        read_only_fields = ('id',)
 
     def validate_email(self, value):
         if User.objects.filter(username=value).exists():
@@ -88,7 +88,7 @@ class MyTokenObtainPairSerializer(TokenObtainSerializer):
     def get_token(cls, user):
         token = super(MyTokenObtainPairSerializer, cls).get_token(user)
 
-        token['user'] = UserSerializer(user).data
+        # token['user'] = UserSerializer(user).data
         return token
 
     def validate(self, attrs):
@@ -124,7 +124,7 @@ class OAuth2ObtainPairSerializer(serializers.Serializer):
 
     def get_token(self, user):
         token = RefreshToken.for_user(user)
-        token['user'] = UserSerializer(user).data
+        # token['user'] = UserSerializer(user).data
         return token
 
     def validate(self, attrs):
